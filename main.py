@@ -119,6 +119,7 @@ def train_model(x_train: np.array, y_train: np.array):
     # save the model
     os.makedirs("models_backup", exist_ok=True) # create the models directory if it doesn't exist
     model.save(f"models_backup/lstm_paper_{datetime.now().strftime('%Y%m%d_%H%M%S')}.keras")
+    model.save("models/lstm_paper.keras") # update the used model with the new one
 
 def predict_model(model_path: str, x_test: np.array):
     # load the model
@@ -149,7 +150,7 @@ if __name__ == "__main__":
     df = pd.read_csv("new.csv", sep=";", index_col="timestamp")
     df = df.drop(["timeOpen", "timeClose", "timeHigh", "timeLow", "name"], axis=1)
     
-    plot_data(df) # NOTE: only run this if you want to see the data
+    # plot_data(df) # NOTE: only run this if you want to see the data
 
     # add the technical indicators to the dataframe
     df = calculate_technical_indicators(df)
@@ -169,7 +170,7 @@ if __name__ == "__main__":
     x_train, y_train, x_test, y_test = split_data(x_train, y_train)
 
     # train the model
-    train_model(x_train, y_train) # NOTE: only run this if you want to train the model
+    # train_model(x_train, y_train) # NOTE: only run this if you want to train the model
 
     # predict the test data
     predictions = predict_model("models/lstm_paper.keras", x_test)
@@ -197,4 +198,4 @@ if __name__ == "__main__":
     original_test["diff"] = original_test["Predictions"] - original_test["close"]
     original_test["diff_percentage"] = original_test["diff"] / original_test["close"]
 
-    save_results(original_test) # NOTE: only run this if you want to save the results
+    # save_results(original_test) # NOTE: only run this if you want to save the results
