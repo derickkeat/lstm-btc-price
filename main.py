@@ -145,6 +145,22 @@ def save_results(frame: pd.DataFrame):
     print(frame)
     print(f"Results saved to /results/{timestamp}/")
 
+# Short-term bias compensation from the paper
+class STBC:
+    def __init__(self, df: pd.DataFrame, calibration_threshold: float):
+        self.df = df.copy()
+        self.previous_calibration = 0
+        self.calibration_threshold = calibration_threshold
+
+    def calibrate(self):
+        for i in range(self.df.shape[0]):
+            calibrated_price = self.df.iloc[i, 3] + self.previous_calibration
+            calibration_today = self.df.iloc[i, 0] - calibrated_price
+            if abs(calibration_today) > self.df.iloc[i, 0] * self.calibration_threshold:
+                self.previous_calibration = calibration_today
+            self.df.iloc[i, 6] = calibrated_price
+        return self.df
+
 if __name__ == "__main__":
     # read the csv file and drop the columns that are not needed
     df = pd.read_csv("new.csv", sep=";", index_col="timestamp")
@@ -199,3 +215,6 @@ if __name__ == "__main__":
     original_test["diff_percentage"] = original_test["diff"] / original_test["close"]
 
     # save_results(original_test) # NOTE: only run this if you want to save the results
+
+    # insert a new column for calibrated predictions
+    original_test.insert(6, "STBC Predictions", 0)
