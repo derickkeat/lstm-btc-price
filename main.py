@@ -153,6 +153,10 @@ class STBC:
         self.calibration_threshold = calibration_threshold
 
     def calibrate(self):
+        # insert a new column for calibrated predictions
+        self.df.insert(6, "STBC Predictions", 0)
+        self.df.insert(7, "STBC Predictions diff", 0)
+        
         #calibrate the predictions row by row
         for i in range(self.df.shape[0]):
             calibrated_price = self.df.iloc[i, 3] + self.previous_calibration
@@ -160,8 +164,13 @@ class STBC:
             if abs(calibration_today) > self.df.iloc[i, 0] * self.calibration_threshold:
                 self.previous_calibration = calibration_today
             self.df.iloc[i, 6] = calibrated_price
-
+            self.df.iloc[i, 7] = (self.df.iloc[i, 6] - self.df.iloc[i, 0]) / self.df.iloc[i, 0]
+            
         return self.df
+
+    def evaluate_accuracy(self):
+        # take the mean of the percentage difference
+        return np.mean(self.df.iloc[:, 7])
 
 if __name__ == "__main__":
     # read the csv file and drop the columns that are not needed
@@ -218,5 +227,7 @@ if __name__ == "__main__":
 
     # save_results(original_test) # NOTE: only run this if you want to save the results
 
-    # insert a new column for calibrated predictions
-    original_test.insert(6, "STBC Predictions", 0)
+    # calibrate the predictions
+    stbc = STBC(original_test, 0.01)
+    stbc.calibrate()
+    print(stbc.evaluate_accuracy())
