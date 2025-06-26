@@ -153,12 +153,14 @@ class STBC:
         self.calibration_threshold = calibration_threshold
 
     def calibrate(self):
+        #calibrate the predictions row by row
         for i in range(self.df.shape[0]):
             calibrated_price = self.df.iloc[i, 3] + self.previous_calibration
             calibration_today = self.df.iloc[i, 0] - calibrated_price
             if abs(calibration_today) > self.df.iloc[i, 0] * self.calibration_threshold:
                 self.previous_calibration = calibration_today
             self.df.iloc[i, 6] = calibrated_price
+
         return self.df
 
 if __name__ == "__main__":
