@@ -156,8 +156,8 @@ class STBC:
 
     def calibrate(self):
         # insert a new column for calibrated predictions
-        self.df.insert(6, "STBC Predictions", 0)
-        self.df.insert(7, "STBC Predictions diff", 0)
+        self.df.insert(6, "STBC Predictions", 0.0)
+        self.df.insert(7, "STBC Predictions diff", 0.0)
         
         #calibrate the predictions row by row
         for i in range(self.df.shape[0]):
