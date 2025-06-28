@@ -178,19 +178,19 @@ class STBC:
 class SSGA:
     def __init__(
         self,
+        df: pd.DataFrame,
         pop_size: int,
         num_generations: int,
         mutation_rate: float,
         crossover_rate: float,
-        elitism: bool,
         tournament_size: int,
         random_seed: Optional[int],
     ):
+        self.df = df.copy()
         self.pop_size = pop_size
         self.num_generations = num_generations
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
-        self.elitism = elitism
         self.tournament_size = tournament_size
 
         if random_seed is not None:
@@ -200,13 +200,13 @@ class SSGA:
         population = []
         
         for _ in range(self.pop_size):
-            individual = np.random.random(0, 2, (self.num_generations))
+            individual = np.random.random()  # Generate a random float between 0 and 1
             population.append(individual)
             
         return population
 
-    def _fitness(self, individual: int):
-        stbc = STBC(individual)
+    def _fitness(self, df: pd.DataFrame, individual: int):
+        stbc = STBC(df, individual)
         stbc.calibrate()
         return 1 / stbc.evaluate_accuracy()
     
@@ -218,31 +218,27 @@ class SSGA:
         winner = tournament[tournament_fitness.index(max(tournament_fitness))]
         return population[winner]
     
-    def _crossover(self, parent1: int, parent2: int):
-        # One-point crossover implementation
+    def _crossover(self, parent1: float, parent2: float):
+        # One-point crossover implementation for floats
         if random.random() > self.crossover_rate:
-            return parent1.copy(), parent2.copy()
+            return parent1, parent2
         
-        # For integers, we can perform bit-level crossover
-        # Convert integers to binary strings with leading zeros
-        bin1 = bin(parent1)[2:].zfill(32)  # 32-bit representation
-        bin2 = bin(parent2)[2:].zfill(32)
+        # For floats, we can do a weighted average (linear interpolation)
+        # Choose a random weight between 0 and 1
+        alpha = random.random()
         
-        # Choose a crossover point
-        point = random.randint(1, 31)  # Avoid extremes
+        # Create two children using complementary weights
+        child1 = alpha * parent1 + (1 - alpha) * parent2
+        child2 = (1 - alpha) * parent1 + alpha * parent2
         
-        # Create new binary strings by swapping at crossover point
-        child1_bin = bin1[:point] + bin2[point:]
-        child2_bin = bin2[:point] + bin1[point:]
-        
-        # Convert back to integers
-        child1 = int(child1_bin, 2)
-        child2 = int(child2_bin, 2)
+        # Ensure the values stay in the [0,1] range
+        child1 = max(0.0, min(1.0, child1))
+        child2 = max(0.0, min(1.0, child2))
         
         return child1, child2
         
     def _mutate(self, individual: int):
-        mutated = individual.copy()
+        mutated = individual
 
         if random.random() < self.mutation_rate:
             # Randomly flip a bit in the integer representation
@@ -256,7 +252,7 @@ class SSGA:
         best_individual = None
         best_fitness = float('-inf')
 
-        fitness_scores = [self._fitness(individual) for individual in population]
+        fitness_scores = [self._fitness(self.df, individual) for individual in population]
 
         for _ in range(self.num_generations):
             parent1 = self._selection(population, fitness_scores)
@@ -267,8 +263,8 @@ class SSGA:
             child1 = self._mutate(child1)
             child2 = self._mutate(child2)
 
-            child1_fitness = self._fitness(child1)
-            child2_fitness = self._fitness(child2)
+            child1_fitness = self._fitness(self.df, child1)
+            child2_fitness = self._fitness(self.df, child2)
 
             if child1_fitness > min(fitness_scores):
                 index_to_replace = fitness_scores.index(min(fitness_scores))
@@ -343,4 +339,22 @@ if __name__ == "__main__":
     # calibrate the predictions
     stbc = STBC(original_test, 0.01)
     stbc.calibrate()
-    print(stbc.evaluate_accuracy())
+    print("Average prediction error before STBC:" + str(stbc.evaluate_accuracy()))
+
+    ssga = SSGA(
+        df=original_test,
+        pop_size=100, # not mentioned in the paper
+        num_generations=15,
+        mutation_rate=0.01,
+        crossover_rate=1, # not mentioned in the paper
+        tournament_size=5,
+        random_seed=42
+    )
+
+    print("STBC Calibration using SSGA...")
+    best_individual, best_fitness = ssga()
+    print(f"Best individual: {best_individual}, Best fitness: {best_fitness}")
+
+    stbc = STBC(original_test, best_individual)
+    stbc.calibrate()
+    print("Average prediction error after STBC:" + str(stbc.evaluate_accuracy()))
