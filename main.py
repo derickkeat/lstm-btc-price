@@ -6,6 +6,8 @@ import tensorflow as tf
 
 import os
 from datetime import datetime
+from typing import Optional
+import random
 
 def plot_data(df: pd.DataFrame):
     os.makedirs("plots", exist_ok=True)
@@ -171,6 +173,117 @@ class STBC:
     def evaluate_accuracy(self):
         # take the mean of the percentage difference
         return np.mean(self.df.iloc[:, 7])
+
+# Steady state genetic algorithm
+class SSGA:
+    def __init__(
+        self,
+        pop_size: int,
+        num_generations: int,
+        mutation_rate: float,
+        crossover_rate: float,
+        elitism: bool,
+        tournament_size: int,
+        random_seed: Optional[int],
+    ):
+        self.pop_size = pop_size
+        self.num_generations = num_generations
+        self.mutation_rate = mutation_rate
+        self.crossover_rate = crossover_rate
+        self.elitism = elitism
+        self.tournament_size = tournament_size
+
+        if random_seed is not None:
+            np.random.seed(random_seed)
+
+    def _initialize_population(self):
+        population = []
+        
+        for _ in range(self.pop_size):
+            individual = np.random.random(0, 2, (self.num_generations))
+            population.append(individual)
+            
+        return population
+
+    def _fitness(self, individual: int):
+        stbc = STBC(individual)
+        stbc.calibrate()
+        return 1 / stbc.evaluate_accuracy()
+    
+    def _selection(self, population: list[int], fitness_scores: list[float]):
+        # randomly get the indexes of population
+        tournament = random.sample(range(len(population)), self.tournament_size)
+        tournament_fitness = [fitness_scores[i] for i in tournament]
+
+        winner = tournament[tournament_fitness.index(max(tournament_fitness))]
+        return population[winner]
+    
+    def _crossover(self, parent1: int, parent2: int):
+        # One-point crossover implementation
+        if random.random() > self.crossover_rate:
+            return parent1.copy(), parent2.copy()
+        
+        # For integers, we can perform bit-level crossover
+        # Convert integers to binary strings with leading zeros
+        bin1 = bin(parent1)[2:].zfill(32)  # 32-bit representation
+        bin2 = bin(parent2)[2:].zfill(32)
+        
+        # Choose a crossover point
+        point = random.randint(1, 31)  # Avoid extremes
+        
+        # Create new binary strings by swapping at crossover point
+        child1_bin = bin1[:point] + bin2[point:]
+        child2_bin = bin2[:point] + bin1[point:]
+        
+        # Convert back to integers
+        child1 = int(child1_bin, 2)
+        child2 = int(child2_bin, 2)
+        
+        return child1, child2
+        
+    def _mutate(self, individual: int):
+        mutated = individual.copy()
+
+        if random.random() < self.mutation_rate:
+            # Randomly flip a bit in the integer representation
+            bit_to_flip = random.randint(0, 31)
+            mutated ^= (1 << bit_to_flip)  # Flip the bit at the position
+
+        return mutated
+
+    def __call__(self):
+        population = self._initialize_population()
+        best_individual = None
+        best_fitness = float('-inf')
+
+        fitness_scores = [self._fitness(individual) for individual in population]
+
+        for _ in range(self.num_generations):
+            parent1 = self._selection(population, fitness_scores)
+            parent2 = self._selection(population, fitness_scores)
+
+            child1, child2 = self._crossover(parent1, parent2)
+
+            child1 = self._mutate(child1)
+            child2 = self._mutate(child2)
+
+            child1_fitness = self._fitness(child1)
+            child2_fitness = self._fitness(child2)
+
+            if child1_fitness > min(fitness_scores):
+                index_to_replace = fitness_scores.index(min(fitness_scores))
+                population[index_to_replace] = child1
+                fitness_scores[index_to_replace] = child1_fitness
+            if child2_fitness > min(fitness_scores):
+                index_to_replace = fitness_scores.index(min(fitness_scores))
+                population[index_to_replace] = child2
+                fitness_scores[index_to_replace] = child2_fitness
+
+            if max(fitness_scores) > best_fitness:
+                best_fitness = max(fitness_scores)
+                best_individual = population[fitness_scores.index(best_fitness)]
+
+        return best_individual, best_fitness
 
 if __name__ == "__main__":
     # read the csv file and drop the columns that are not needed
