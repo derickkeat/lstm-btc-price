@@ -9,6 +9,17 @@ from datetime import datetime
 from typing import Optional
 import random
 
+SEED = 42
+
+# Set seeds for reproducibility
+tf.random.set_seed(SEED)
+np.random.seed(SEED)
+random.seed(SEED)
+
+# Set TensorFlow session determinism for reproducibility
+tf.keras.utils.set_random_seed(SEED)
+tf.config.experimental.enable_op_determinism()
+
 def plot_data(df: pd.DataFrame):
     os.makedirs("plots", exist_ok=True)
     # plot the close price and volume over time
