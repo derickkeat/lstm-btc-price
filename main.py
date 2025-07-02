@@ -182,8 +182,8 @@ class STBC:
         return self.df
 
     def evaluate_accuracy(self):
-        # take the mean of the percentage difference
-        return np.mean(self.df.iloc[:, 7])
+        # take the mean of the absolute percentage difference
+        return np.mean(np.abs(self.df.iloc[:, 7]))
 
 # Steady state genetic algorithm
 class SSGA:
@@ -345,7 +345,7 @@ if __name__ == "__main__":
     original_test["diff"] = original_test["Predictions"] - original_test["close"]
     original_test["diff_percentage"] = original_test["diff"] / original_test["close"]
 
-    # save_results(original_test) # NOTE: only run this if you want to save the results
+    # save_results(original_test) # NOTE: only run this if you want to save the results without calibration
 
     # calibrate the predictions
     stbc = STBC(original_test, 0.01)
@@ -369,3 +369,5 @@ if __name__ == "__main__":
     stbc = STBC(original_test, best_individual)
     stbc.calibrate()
     print("Average prediction error after STBC:" + str(stbc.evaluate_accuracy()))
+
+    save_results(stbc.df) # NOTE: only run this if you want to save the results after calibration
