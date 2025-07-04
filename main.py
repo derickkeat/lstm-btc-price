@@ -13,6 +13,7 @@ from src.utils.plotting import plot_data
 from src.data.preprocess import normalize, denormalize, build_train_data, split_data
 from src.features.indicators import calculate_technical_indicators
 from src.models.lstm import train_model, predict_model
+from src.metrics import evaluate_mse
 
 SEED = 42
 
@@ -40,11 +41,6 @@ def save_results(frame: pd.DataFrame):
 
     print(frame)
     print(f"Results saved to /results/{timestamp}/")
-
-def evaluate_mse(frame: pd.DataFrame):
-    # Calculate the mean squared error between actual close price and predictions
-    mse = np.mean((frame['close'] - frame['Predictions']) ** 2)
-    return mse
 
 # Short-term bias compensation from the paper
 class STBC:
