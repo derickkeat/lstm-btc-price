@@ -158,6 +158,11 @@ def save_results(frame: pd.DataFrame):
     print(frame)
     print(f"Results saved to /results/{timestamp}/")
 
+def evaluate_mse(frame: pd.DataFrame):
+    # Calculate the mean squared error between actual close price and predictions
+    mse = np.mean((frame['close'] - frame['Predictions']) ** 2)
+    return mse
+
 # Short-term bias compensation from the paper
 class STBC:
     def __init__(self, df: pd.DataFrame, calibration_threshold: float):
@@ -184,6 +189,11 @@ class STBC:
     def evaluate_accuracy(self):
         # take the mean of the absolute percentage difference
         return np.mean(np.abs(self.df.iloc[:, 7]))
+
+    # calculate the mean squared error of the STBC value
+    def evaluate_mse(self):
+        # Mean squared error between actual close price and STBC predictions
+        return np.mean((self.df.iloc[:, 0] - self.df.iloc[:, 6]) ** 2)
 
 # Steady state genetic algorithm
 class SSGA:
@@ -347,10 +357,14 @@ if __name__ == "__main__":
 
     # save_results(original_test) # NOTE: only run this if you want to save the results without calibration
 
+    print("MSE without STBC:" + str(evaluate_mse(original_test)))
+    print("Average prediction error without STBC:" + str(np.mean(np.abs(original_test["diff_percentage"]))))
+
     # calibrate the predictions
-    stbc = STBC(original_test, 0.01)
+    stbc = STBC(original_test, 0.05)
     stbc.calibrate()
-    print("Average prediction error before STBC:" + str(stbc.evaluate_accuracy()))
+    print("MSE before optimizing STBC:" + str(stbc.evaluate_mse()))
+    print("Average prediction error before optimizing STBC:" + str(stbc.evaluate_accuracy()))
 
     ssga = SSGA(
         df=original_test,
@@ -368,6 +382,7 @@ if __name__ == "__main__":
 
     stbc = STBC(original_test, best_individual)
     stbc.calibrate()
-    print("Average prediction error after STBC:" + str(stbc.evaluate_accuracy()))
+    print("MSE after optimizing STBC:" + str(stbc.evaluate_mse()))
+    print("Average prediction error after optimizing STBC:" + str(stbc.evaluate_accuracy()))
 
-    save_results(stbc.df) # NOTE: only run this if you want to save the results after calibration
+    # save_results(stbc.df) # NOTE: only run this if you want to save the results after calibration
