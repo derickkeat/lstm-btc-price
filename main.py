@@ -10,7 +10,7 @@ from typing import Optional
 import random
 
 from src.utils.plotting import plot_data
-from src.data.preprocess import normalize, denormalize
+from src.data.preprocess import normalize, denormalize, build_train_data, split_data
 from src.features.indicators import calculate_technical_indicators
 
 SEED = 42
@@ -23,30 +23,6 @@ random.seed(SEED)
 # Set TensorFlow session determinism for reproducibility
 tf.keras.utils.set_random_seed(SEED)
 tf.config.experimental.enable_op_determinism()
-
-def build_train_data(df, past_days: int = 20, future_days: int = 1):
-    x_train, y_train = [], []
-
-    # sliding window
-    for i in range(df.shape[0] - past_days - future_days):
-        x_train.append(np.array(df.iloc[i:i+past_days]))
-        y_train.append(np.array(df.iloc[i+past_days:i+past_days+future_days]["close"]))
-    
-    return np.array(x_train), np.array(y_train)
-
-def split_data(x, y, test_size: float = 0.2):
-    # Calculate the split point - use the last test_size portion for testing
-    split_idx = int(x.shape[0] * (1 - test_size))
-    
-    # Training data is the older data (beginning to split point)
-    x_train = x[:split_idx]
-    y_train = y[:split_idx]
-    
-    # Test data is the more recent data (split point to end)
-    x_test = x[split_idx:]
-    y_test = y[split_idx:]
-    
-    return x_train, y_train, x_test, y_test
 
 def train_model(x_train: np.array, y_train: np.array):
     # build the model
