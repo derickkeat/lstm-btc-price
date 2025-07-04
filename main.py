@@ -16,17 +16,7 @@ from src.models.lstm import train_model, predict_model
 from src.metrics import evaluate_mse
 from src.bias.stbc import STBC
 from src.optim.ssga import SSGA
-
-SEED = 42
-
-# Set seeds for reproducibility
-tf.random.set_seed(SEED)
-np.random.seed(SEED)
-random.seed(SEED)
-
-# Set TensorFlow session determinism for reproducibility
-tf.keras.utils.set_random_seed(SEED)
-tf.config.experimental.enable_op_determinism()
+from src.utils.reproducibility import set_seed
 
 def save_results(frame: pd.DataFrame):
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -45,6 +35,8 @@ def save_results(frame: pd.DataFrame):
     print(f"Results saved to /results/{timestamp}/")
 
 if __name__ == "__main__":
+    set_seed(42)  # Set seed for reproducibility
+
     # read the csv file and drop the columns that are not needed
     df = pd.read_csv("new.csv", sep=";", index_col="timestamp")
     df = df.drop(["timeOpen", "timeClose", "timeHigh", "timeLow", "name"], axis=1)
