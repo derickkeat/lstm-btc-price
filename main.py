@@ -10,6 +10,7 @@ from typing import Optional
 import random
 
 from src.utils.plotting import plot_data
+from src.data.preprocess import normalize, denormalize
 
 SEED = 42
 
@@ -21,14 +22,6 @@ random.seed(SEED)
 # Set TensorFlow session determinism for reproducibility
 tf.keras.utils.set_random_seed(SEED)
 tf.config.experimental.enable_op_determinism()
-
-def normalize(frame: pd.DataFrame):
-    return frame.apply(lambda x: (x - np.min(x)) / (np.max(x) - np.min(x)))
-
-def denormalize(normalized_values, original_values):
-    min_val = np.min(original_values)
-    max_val = np.max(original_values)
-    return normalized_values * (max_val - min_val) + min_val
 
 def calculate_technical_indicators(df: pd.DataFrame):
     # Calculate technical indicators
