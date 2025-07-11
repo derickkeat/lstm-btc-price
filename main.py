@@ -18,17 +18,17 @@ from src.bias.stbc import STBC
 from src.optim.ssga import SSGA
 from src.utils.reproducibility import set_seed
 
-def save_results(frame: pd.DataFrame):
+def save_results(frame: pd.DataFrame, prediction_column: str):
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     os.makedirs(f"results/{timestamp}", exist_ok=True)
     frame.to_csv(f"results/{timestamp}/results.csv", sep=";", index=True)
 
     # plot the data
     plt.figure(figsize=(10, 5))
-    plt.plot(original_test.index, original_test["close"], label="close", color="red")
-    plt.plot(original_test.index, original_test["Predictions"], label="predictions", color="blue")
+    plt.plot(frame.index, frame["close"], label="close", color="red")
+    plt.plot(frame.index, frame[prediction_column], label=prediction_column, color="blue")
     plt.legend()
-    plt.savefig(f"results/{timestamp}/predictions.png")
+    plt.savefig(f"results/{timestamp}/prediction_plot.png")
     plt.close()
 
     print(frame)
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     original_test["diff"] = original_test["Predictions"] - original_test["close"]
     original_test["diff_percentage"] = original_test["diff"] / original_test["close"]
 
-    # save_results(original_test) # NOTE: only run this if you want to save the results without calibration
+    save_results(original_test, "Predictions") # NOTE: only run this if you want to save the results without calibration
 
     print("MSE without STBC:" + str(evaluate_mse(original_test)))
     print("Average prediction error without STBC:" + str(np.mean(np.abs(original_test["diff_percentage"]))))
@@ -119,4 +119,4 @@ if __name__ == "__main__":
     print("MSE after optimizing STBC:" + str(stbc.evaluate_mse()))
     print("Average prediction error after optimizing STBC:" + str(stbc.evaluate_accuracy()))
 
-    # save_results(stbc.df) # NOTE: only run this if you want to save the results after calibration
+    save_results(stbc.df, "STBC Predictions") # NOTE: only run this if you want to save the results after calibration
