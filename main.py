@@ -38,7 +38,7 @@ if __name__ == "__main__":
     set_seed(42)  # Set seed for reproducibility
 
     # read the csv file and drop the columns that are not needed
-    df = pd.read_csv("new.csv", sep=";", index_col="timestamp")
+    df = pd.read_csv("data/processed/new.csv", sep=";", index_col="timestamp")
     df = df.drop(["timeOpen", "timeClose", "timeHigh", "timeLow", "name"], axis=1)
     
     # plot_data(df) # NOTE: only run this if you want to see the data

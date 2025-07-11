@@ -198,7 +198,7 @@ results/
 models/
 models_backup/
 plots/
-new.csv
+data/processed/
 
 # Include src/models in commits
 !src/models/
