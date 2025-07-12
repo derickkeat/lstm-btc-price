@@ -17,22 +17,7 @@ from src.metrics import evaluate_mse
 from src.bias.stbc import STBC
 from src.optim.ssga import SSGA
 from src.utils.reproducibility import set_seed
-
-def save_results(frame: pd.DataFrame, prediction_column: str):
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    os.makedirs(f"results/{timestamp}", exist_ok=True)
-    frame.to_csv(f"results/{timestamp}/results.csv", sep=";", index=True)
-
-    # plot the data
-    plt.figure(figsize=(10, 5))
-    plt.plot(frame.index, frame["close"], label="close", color="red")
-    plt.plot(frame.index, frame[prediction_column], label=prediction_column, color="blue")
-    plt.legend()
-    plt.savefig(f"results/{timestamp}/prediction_plot.png")
-    plt.close()
-
-    print(frame)
-    print(f"Results saved to /results/{timestamp}/")
+from src.data.saver import save_results
 
 if __name__ == "__main__":
     set_seed(42)  # Set seed for reproducibility
