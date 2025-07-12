@@ -26,6 +26,11 @@ if __name__ == "__main__":
     df = pd.read_csv("data/processed/new.csv", sep=";", index_col="timestamp")
     df = df.drop(["timeOpen", "timeClose", "timeHigh", "timeLow", "name"], axis=1)
     
+    # Convert numeric columns to float
+    numeric_columns = ["open", "high", "low", "close", "volume", "marketCap"]
+    for col in numeric_columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+    
     # plot_data(df) # NOTE: only run this if you want to see the data
 
     # add the technical indicators to the dataframe
