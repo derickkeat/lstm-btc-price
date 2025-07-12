@@ -6,8 +6,8 @@ def remove_quotation(line: str):
 #     return line.replace("T23:59:59.999Z", "")
 
 def main():
-    with open("bitcoin-price.csv") as file:
-        with open("new.csv", "a") as output:
+    with open("data/raw/bitcoin-price.csv") as file:
+        with open("data/processed/new.csv", "a") as output:
             for line in file:
                 new_line = remove_quotation(line)
 
