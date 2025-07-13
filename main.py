@@ -18,18 +18,12 @@ from src.bias.stbc import STBC
 from src.optim.ssga import SSGA
 from src.utils.reproducibility import set_seed
 from src.data.saver import save_results
+from src.data.loader import load_data
 
 if __name__ == "__main__":
     set_seed(42)  # Set seed for reproducibility
 
-    # read the csv file and drop the columns that are not needed
-    df = pd.read_csv("data/processed/new.csv", sep=";", index_col="timestamp")
-    df = df.drop(["timeOpen", "timeClose", "timeHigh", "timeLow", "name"], axis=1)
-    
-    # Convert numeric columns to float
-    numeric_columns = ["open", "high", "low", "close", "volume", "marketCap"]
-    for col in numeric_columns:
-        df[col] = pd.to_numeric(df[col], errors='coerce')
+    df = load_data()  # Load the data
     
     # plot_data(df) # NOTE: only run this if you want to see the data
 
