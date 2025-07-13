@@ -5,7 +5,7 @@ def remove_quotation(line: str):
 # def remove_time(line: str):
 #     return line.replace("T23:59:59.999Z", "")
 
-def main():
+def clean():
     with open("data/raw/bitcoin-price.csv") as file:
         with open("data/processed/new.csv", "a") as output:
             for line in file:
@@ -16,7 +16,5 @@ def main():
                 new_line = "".join(parts)
 
                 output.write(new_line)
-                # print(new_line)
 
-if __name__ == "__main__":
-    main()
+    print("Data cleaning completed. Processed data saved to data/processed/new.csv.")

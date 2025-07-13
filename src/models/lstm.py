@@ -5,7 +5,7 @@ import tensorflow as tf
 import os
 from datetime import datetime
 
-def train_model(x_train: np.array, y_train: np.array):
+def train_model(x_train: np.array, y_train: np.array, epochs=20, batch_size=32):
     # build the model
     model = tf.keras.Sequential()
 
@@ -21,11 +21,12 @@ def train_model(x_train: np.array, y_train: np.array):
     model.compile(optimizer="adam", loss="mse", metrics=[tf.keras.metrics.RootMeanSquaredError()])
 
     # train the model
-    model.fit(x_train, y_train, epochs=20, batch_size=32)
+    model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size)
     model.summary()
 
     # save the model
     os.makedirs("models_backup", exist_ok=True) # create the models directory if it doesn't exist
+    os.makedirs("models", exist_ok=True) # create the models directory if it doesn't exist
     model.save(f"models_backup/lstm_paper_{datetime.now().strftime('%Y%m%d_%H%M%S')}.keras")
     model.save("models/lstm_paper.keras") # update the used model with the new one
 
