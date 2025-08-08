@@ -1,0 +1,8 @@
+[tool.pytest.ini_options]
+addopts = "-q --cov=src --cov=cli.py --cov-report=term-missing"
+testpaths = [
+  "tests"
+]
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]
