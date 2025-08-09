@@ -21,8 +21,6 @@ class STBC:
                 self.previous_calibration = calibration_today
             self.df.iloc[i, 6] = calibrated_price
             self.df.iloc[i, 7] = (self.df.iloc[i, 6] - self.df.iloc[i, 0]) / self.df.iloc[i, 0]
-            
-        return self.df
 
     def evaluate_accuracy(self):
         # take the mean of the absolute percentage difference
